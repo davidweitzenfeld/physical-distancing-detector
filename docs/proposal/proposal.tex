@@ -1,0 +1,185 @@
+\documentclass{scrartcl}
+
+\usepackage[left=0.65in,right=0.65in, top=1in, bottom=1in]{geometry}
+\usepackage{ragged2e}
+\usepackage{tcolorbox}
+\usepackage{xcolor}
+\usepackage{ifthen}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{layouts}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{mathtools}
+\usepackage{lastpage}
+\usepackage[headsepline,footsepline]{scrlayer-scrpage}
+\usepackage{pdfpages}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots,dateplot}
+\usetikzlibrary{patterns,shapes.arrows}
+\pgfplotsset{compat=newest}
+
+\usepackage[
+backend=biber,
+bibstyle=ieee, 
+citestyle=numeric-comp
+]{biblatex}
+\addbibresource{references.bib}
+
+\ihead{Team GR1}
+\chead{University of Toronto --- Fall 2020}
+\ohead{4 November 2020}
+
+\ifoot{CSC420}
+\cfoot{Project Proposal}
+\ofoot{Page \thepage\ of \pageref{LastPage}}
+
+\setlength{\parskip}{1em}
+
+\newcommand{\mat}[1]{\bm{\mathit{#1}}}
+
+\DeclarePairedDelimiter\parents{\lparen}{\rparen}
+
+\newboolean{showtodo}
+\setboolean{showtodo}{false} % Set this to false to hide the to-dos.
+\newcommand{\todo}[1]{\ifthenelse{\boolean{showtodo}}{
+  \begin{tcolorbox}[colback=white,colframe=red,arc=1pt,outer arc=1pt,boxrule=1pt]\textcolor{red}{#1}\end{tcolorbox}
+  {}}}
+
+\begin{document}
+    
+\begin{center}    
+{
+    \scshape
+    \Large CSC420: Introduction to Image Understanding \\
+    \vspace*{0.1cm}
+    \huge Image-Based Detection of Nonobservance of Physical Distancing \\
+    \vspace*{0.1cm}
+    \Large Project Proposal \\
+}
+\vspace*{0.25cm}
+\large by Kevin Covelli, Bryan Elcorrobarrutia and David Vajcenfeld \\
+\end{center}
+
+\todo{Each question is worth 1 point and the proposal should not be longer than 2 pages.}
+
+\todo{Topic definition: \textit{COVID-19 spreads mainly among people who are in close contact (within about 6 feet) for a prolonged period. Spread happens when an infected person coughs, sneezes, or talks, and droplets from their mouth or nose are launched into the air and land in the mouths or noses of people nearby. The droplets can also be inhaled into the lungs. Recent studies indicate that people who are infected but do not have symptoms likely also play a role in the spread of COVID-19. Since people can spread the virus before they know they are sick, it is important to stay at least 6 feet away from others when possible. In this topic, you are required to propose a solution that helps to detect social distancing between people (Social Distancing Detector).}}
+
+\section{The Problem --- Social Distancing Detection}
+\todo{What is the problem exactly and what are you going to achieve?}
+
+With the spread of the coronavirus disease 2019 (COVID-19) and the increasing death toll caused by it, 
+scientists, governments and people have realized that social distancing measures are a crucial factor in reducing its spread. 
+Social distancing is, as defined by the US's Center for Disease Control and Prevention (CDC), a set of 
+``methods for reducing frequency and closeness of contact between people in
+order to decrease the risk of transmission of disease'' \cite{ethicalguidelinescdc}.
+One important factor of social distancing measures is \textit{physical distancing},
+which we will define as the maintenance of a minimum open-air distance between any two individuals. 
+
+As physical distancing is a matter of public interest,
+it would be useful for there to exist tools to monitor adherence 
+and help with making further improvements in regards to the public's responses to the spread of COVID-19.
+Video streams of busy public places could be analyzed in real time for adherence to physical distancing
+and other crowd metrics, 
+providing policy-makers with data to help inform decisions about 
+limits on gatherings and other restrictionary polices intended to reduce social distancing.
+For example, a live video of a busy public place, such as a transit station, 
+could be streamed and analyzed in real time,
+helping inform decisions about reducing the general movement of people,
+and policies about the specific place, 
+such as crowd control management and visitor flow design.
+
+\section{Relevance to Course}
+\todo{How is this problem relevant to this course?}
+
+Relevance to the courses arises from the use of image-based algorithms 
+primarily for the detection of people and the extraction of three-dimensional 
+relative distances from two-dimensional images. 
+
+In particular, object detection and tracking will heavily rely on corner detection and derived topics,
+covered in lectures 5--7 of this course.
+Similarly, relative distance calculations will rely on homography and geometric transformations,
+related to topics covered in lectures 7 and 8 of this course.
+
+\section{Others' Attempts at the Problem}
+\todo{What others have tried to solve this problem?} 
+
+As a result of the severity of the COVID-19 outbreak,
+numerous attempts have been made at real-time physical or ``social'' distancing
+tools, both in academia and industry.
+
+Landing AI, a company which creates AI-based enterprise solutions,
+has built a ``Social Distancing Detector'' tool which allows users to detect 
+nonobservance of social distancing based on a live video feed \cite{landingai}.
+It requires a set-up stage, a so-called ``calibration'' step,
+where the users instructs the tool on how the video can be transformed into a top-down perspective.
+After this, an ``open-source pedestrian detection network based on the Faster R-CNN architecture''
+is used to detect people, whose positions are then mapped onto the top-down perspective and 
+relative distance are calculated based on it.
+Due to the basic transformation and distance calculation logic,
+this tool assumes with a flat ground plane.
+
+There have been other similar solutions developed as well,
+such as the Socialdistancingnet-19 Deep Learning Network developed at 
+the K.\ J.\ Somaiya College of Engineering \cite{socdistksomaiya},
+and a paper by Singh Punn et al.\ comparing different neural networks used for object detection
+for the purpose of detecting social distancing adherence \cite{socialdistyolo}.
+The latter paper recommends using the YOLO v3 neural network-based object detection algorithms 
+for real-time pedestrian detection and tracking.
+
+\section{Approaches for Solving the Problem}
+\todo{What approaches are you going to try and why do you think these approaches might work?}
+
+We will start off with the simple approach of performing object detection to 
+find people in the image or video, 
+and calculate relative physical distances through a transformation to a top-down perspective
+assuming a flat ground plane.
+
+Subsequently, we will try to improve on this simple approach by using more sophisticated
+algorithms for each component of the problem individually.
+We will first focus on object detection and tracking, attempting to use different algorithms,
+including convolutional neural networks (CNNs).
+Next, we will focus on relative distance calculations,
+attempting to improve and potentially automate ground plane detection.
+As a starting point we can use a paper from the University of Minnesota
+which describes a method
+of ground plane detection from a single RGB image based on depth maps 
+generated from texture gradients. However we may simply have the user
+indicate the ground plane during a setup step if this proves to be too inaccurate
+or too time consuming to implement.
+
+Finally, we will focus on collecting crowd and physical distancing metrics
+from the real-time videos, with the purpose of providing decision-makers 
+with useful data on how COVID-19 may be spreading at that given location. 
+
+\section{Steps to Achieve Goals}
+\todo{What steps are you going to take to achieve your goals in this project?}
+
+In order to achieve our goal, 
+we will first have to gather useful information about potential solutions
+and set up a development environment suitable for our problem domain, solution and team.
+We will start off by working on the following steps in parallel:
+\begin{enumerate}
+    \item Research and collate information implementation details of other attempts at the problem, general image-based crowd understanding algorithms, three-dimensional distance calculation algorithms, and object detection algorithms.
+    \item Collect and organize sufficiently large datasets consisting 
+    of both images and videos of a variety of moving crowds in a variety of conditions.
+    \item Start off a basic development environment in a shared Git repository and code that would allow us 
+    to ingest and process the datasets, allowing for both
+    development of the final solution and quick experimentation.
+\end{enumerate}
+
+After these steps,
+we will work to analyze our findings so far, continue implementations and experiments 
+to see how these methods work in practice, and eventually decide on our final solution. 
+Afterwards, we will work on finalizing development of the chosen solution and working on the project deliverables.
+
+\printbibliography
+
+\end{document}
