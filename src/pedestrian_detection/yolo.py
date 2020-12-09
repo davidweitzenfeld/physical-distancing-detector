@@ -12,7 +12,7 @@ YOLO = '../../data/yolo_v3_coco'
 #   https://www.learnopencv.com/deep-learning-based-object-detection-using-yolov3-with-opencv-python-c/
 
 def test():
-    net, last_layers, label_names = prepare_yolo_model()
+    net, last_layers, label_names = prepare_yolo_model(YOLO)
 
     start = time.time()
     for i in range(100):
@@ -28,18 +28,18 @@ def test():
         cv2.waitKey(1)
 
 
-def prepare_yolo_model() -> Tuple[cv2.dnn_Net, List[str], List[str]]:
+def prepare_yolo_model(yolo_dir: str) -> Tuple[cv2.dnn_Net, List[str], List[str]]:
     """
     Prepares the YOLOv3 neural network model.
 
     :return: A tuple of (net, last_layers, label_names).
     """
     # Read label names.
-    with open(f'{YOLO}/coco.names') as f:
+    with open(f'{yolo_dir}/coco.names') as f:
         label_names = f.read().splitlines()
 
     # Read the YOLO network model.
-    net = cv2.dnn.readNetFromDarknet(f'{YOLO}/yolo_v3.cfg', f'{YOLO}/yolo_v3.weights')
+    net = cv2.dnn.readNetFromDarknet(f'{yolo_dir}/yolo_v3.cfg', f'{yolo_dir}/yolo_v3.weights')
 
     # Get the output layers of the network.
     # The last layers are those which do not have an output (i.e. "leaf nodes").

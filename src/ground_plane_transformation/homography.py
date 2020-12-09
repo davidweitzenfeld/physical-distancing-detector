@@ -58,7 +58,7 @@ def ask_for_rectangle(img: np.ndarray) -> np.ndarray:
     return points
 
 
-def ask_for_unit_distance(img: np.ndarray) -> Tuple[int, int]:
+def ask_for_unit_distance(img: np.ndarray) -> np.ndarray:
     """
     Asks the user to select three points in order to calculate the unit distance.
 
@@ -96,21 +96,23 @@ def ask_for_unit_distance(img: np.ndarray) -> Tuple[int, int]:
 
     x_unit_dist = np.abs(points[0][0] - points[1][0])
     y_unit_dist = np.abs(points[0][1] - points[2][1])
-    return x_unit_dist, y_unit_dist
+    return np.array([x_unit_dist, y_unit_dist])
 
 
 def apply_ground_plane_transform(img: np.ndarray, rectangle: np.ndarray,
-                                 unit_dist: Tuple[int, int]) -> np.ndarray:
+                                 unit_dist: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     Applies the ground plane transform using the given rectangle unit distances.
 
     :return: The ground plane transformed image.
     """
+    assert unit_dist.shape == (2,)
+
     h, w = img.shape[:2]
     out_w, out_h = int(w), int(h * (float(unit_dist[0]) / float(unit_dist[1])))
     homography, mask = cv2.findHomography(rectangle, get_corresponding_points(out_w, out_h))
     img_warped = cv2.warpPerspective(img, homography, (out_w, out_h))
-    return img_warped
+    return img_warped, homography
 
 
 def get_corresponding_points(w: int, h: int) -> np.ndarray:
