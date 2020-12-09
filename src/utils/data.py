@@ -1,4 +1,4 @@
-from typing import Literal, Generator
+from typing import Literal, Generator, Callable
 
 import cv2
 import numpy as np
@@ -6,6 +6,7 @@ import numpy as np
 ROOT = '../data'
 
 ImageSeq = Generator[np.ndarray, None, None]
+ImageSeqProvider = Callable[[], ImageSeq]
 
 
 def get_grand_central_images() -> ImageSeq:
@@ -45,3 +46,7 @@ def get_video_images(path: str) -> ImageSeq:
 
 def get_image_as_seq(path: str) -> ImageSeq:
     yield cv2.imread(path)
+
+
+def provider(fn: ImageSeqProvider) -> ImageSeqProvider:
+    return fn

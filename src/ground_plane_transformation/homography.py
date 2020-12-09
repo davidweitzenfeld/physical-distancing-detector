@@ -3,6 +3,8 @@ from typing import Tuple
 import cv2
 import numpy as np
 
+from src.utils import data
+
 
 def test():
     # img = cv2.imread(f'../../data/individual/field.png')
@@ -99,20 +101,31 @@ def ask_for_unit_distance(img: np.ndarray) -> np.ndarray:
     return np.array([x_unit_dist, y_unit_dist])
 
 
-def apply_ground_plane_transform(img: np.ndarray, rectangle: np.ndarray,
-                                 unit_dist: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def compute_homography(img: np.ndarray, rectangle: np.ndarray,
+                       unit_dist: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
     """
-    Applies the ground plane transform using the given rectangle unit distances.
+    Computes the homography for the ground plane transform
+    using the given rectangle and unit distances.
 
-    :return: The ground plane transformed image.
+    :return: A tuple of (ground plane transform homography, size of the output image).
     """
     assert unit_dist.shape == (2,)
 
     h, w = img.shape[:2]
     out_w, out_h = int(w), int(h * (float(unit_dist[0]) / float(unit_dist[1])))
     homography, mask = cv2.findHomography(rectangle, get_corresponding_points(out_w, out_h))
-    img_warped = cv2.warpPerspective(img, homography, (out_w, out_h))
-    return img_warped, homography
+    return homography, (out_w, out_h)
+
+
+def apply_ground_plane_transform(img: np.ndarray, homography: np.ndarray,
+                                 out_size: Tuple[int, int]) -> np.ndarray:
+    """
+    Applies the ground plane transform homography.
+
+    :return: The ground plane transformed image.
+    """
+    img_warped = cv2.warpPerspective(img, homography, out_size)
+    return img_warped
 
 
 def get_corresponding_points(w: int, h: int) -> np.ndarray:
@@ -122,6 +135,14 @@ def get_corresponding_points(w: int, h: int) -> np.ndarray:
         [0, 0],  # top right
         [w, 0],  # bottom right
     ])
+
+
+def get_ground_plane_img(images: data.ImageSeq, homography: np.ndarray,
+                         out_size: Tuple[int, int]) -> np.ndarray:
+    matrix = np.stack([cv2.warpPerspective(img, homography, out_size) for img in images])
+    mean = np.mean(matrix, axis=0)
+    mean = cv2.convertScaleAbs(mean)
+    return mean
 
 
 if __name__ == '__main__':

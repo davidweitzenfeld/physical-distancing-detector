@@ -11,15 +11,17 @@ def main():
     ground_win = "ground"
 
     # images = get_pets_2009_images(subset=2, difficulty_level=2)
-    images = data.get_video_images('../data/oxford_town_center/oxford_town_center.mp4')
+    images = data.get_pets_2009_images(2, 2)
     img = next(images)
 
     # Ground plane transformation.
     print('Performing ground plane transformation...')
     rect = ask_for_rectangle(img)
-    img_ground, _ = apply_ground_plane_transform(img, rect, np.ones((2,)))
+    homography, ground_size = compute_homography(img, rect, np.ones(2, ))
+    img_ground = apply_ground_plane_transform(img, homography, ground_size)
     unit_dist = ask_for_unit_distance(img_ground)
-    img_ground, homography = apply_ground_plane_transform(img, rect, unit_dist)
+    homography, ground_size = compute_homography(img, rect, unit_dist)
+    img_ground = get_ground_plane_img(data.get_pets_2009_images(2, 2), homography, ground_size)
     print('Done!')
 
     # Pedestrian detection.
@@ -51,7 +53,7 @@ def main():
         for x, y in points:
             cv2.circle(img, (x, y), 5, clr.blue, thickness=3)
 
-        img_ground_copy, _ = apply_ground_plane_transform(img, rect, unit_dist)
+        img_ground_copy = img_ground.copy()
         for x, y in points_ground:
             cv2.circle(img_ground_copy, (x, y), 5, clr.blue, thickness=2)
         for i, j in np.ndindex(distances.shape):
