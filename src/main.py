@@ -41,8 +41,13 @@ def main():
         distances = calculate_distances(points_ground / unit_dist)
         print('Done!')
 
-        for x, y, w, h in bounding_boxes:
-            cv2.rectangle(img, (x, y), (x + w, y + h), clr.red, thickness=2)
+        non_zero_dist = np.ma.masked_array(distances, mask=distances == 0)
+        smallest_dist_per_point = np.min(non_zero_dist, axis=1).T.reshape(-1, 1)
+
+        for i, (x, y, w, h) in enumerate(bounding_boxes):
+            dist = smallest_dist_per_point[i]
+            color = clr.red if dist <= 1 else clr.green
+            cv2.rectangle(img, (x, y), (x + w, y + h), color, thickness=2)
         for x, y in points:
             cv2.circle(img, (x, y), 5, clr.blue, thickness=3)
 
@@ -61,7 +66,7 @@ def main():
 
         cv2.imshow(video_win, img)
         cv2.imshow(ground_win, img_ground_copy)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
 
 
 if __name__ == '__main__':
