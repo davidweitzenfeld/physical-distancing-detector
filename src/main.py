@@ -10,8 +10,17 @@ def main():
     video_win = "video"
     ground_win = "ground"
 
-    # images = get_pets_2009_images(subset=2, difficulty_level=2)
-    images = data.get_pets_2009_images(2, 2)
+    image_provider = data.provider(lambda: data.get_pets_2009_images(2, 2))
+
+    for img, img_ground in process(image_provider):
+        cv2.imshow(video_win, img)
+        cv2.imshow(ground_win, img_ground)
+        cv2.waitKey(1)
+
+
+def process(images_provider: data.ImageSeqProvider) \
+        -> Generator[Tuple[np.ndarray, np.ndarray], None, None]:
+    images = images_provider()
     img = next(images)
 
     # Ground plane transformation.
@@ -21,7 +30,7 @@ def main():
     img_ground = apply_ground_plane_transform(img, homography, ground_size)
     unit_dist = ask_for_unit_distance(img_ground)
     homography, ground_size = compute_homography(img, rect, unit_dist)
-    img_ground = get_ground_plane_img(data.get_pets_2009_images(2, 2), homography, ground_size)
+    img_ground = get_ground_plane_img(images_provider(), homography, ground_size)
     print('Done!')
 
     # Pedestrian detection.
@@ -66,9 +75,7 @@ def main():
             cv2.putText(img_ground_copy, f'{distances[i, j]:.2f}', (h_x, h_y),
                         cv2.FONT_HERSHEY_PLAIN, fontScale=1.2, color=clr.green)
 
-        cv2.imshow(video_win, img)
-        cv2.imshow(ground_win, img_ground_copy)
-        cv2.waitKey(1)
+        yield img, img_ground_copy
 
 
 if __name__ == '__main__':
