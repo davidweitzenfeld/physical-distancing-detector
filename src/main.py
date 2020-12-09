@@ -1,17 +1,18 @@
-import cv2
+from typing import Generator
+
+from src.distance_calculation.distance_calculation import *
 from src.ground_plane_transformation.homography import *
 from src.pedestrian_detection.yolo import *
-from src.distance_calculation.distance_calculation import *
-from src.utils import clr
+from src.utils import clr, data
 
 
 def main():
     video_win = "video"
     ground_win = "ground"
 
-    images = (f'../data/pets2009/S2/L2/Time_14-55/View_001/frame_{n:04}.jpg' for n in range(200))
-
-    img = cv2.imread(f'../data/pets2009/S2/L2/Time_14-55/View_001/frame_0000.jpg')
+    # images = get_pets_2009_images(subset=2, difficulty_level=2)
+    images = data.get_video_images('../data/oxford_town_center/oxford_town_center.mp4')
+    img = next(images)
 
     # Ground plane transformation.
     print('Performing ground plane transformation...')
@@ -26,8 +27,7 @@ def main():
     net, last_layers, label_names = prepare_yolo_model('../data/yolo_v3_coco')
     print('Done!')
 
-    for img_path in images:
-        img = cv2.imread(img_path)
+    for img in images:
 
         # Pedestrian detection.
         print('Performing pedestrian detection...')
