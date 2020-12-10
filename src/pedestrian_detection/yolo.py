@@ -57,6 +57,7 @@ def detect_people(img: np.ndarray, net: cv2.dnn_Net,
     :return: A tuple of (bounding_boxes, confidences).
     """
     img_h, img_w = img.shape[:2]
+    max_detection_size = (0.5, 0.5)
 
     # Create normalized and resized blob from image. Also OpenCV's BGR is converted to RGB.
     blob = cv2.dnn.blobFromImage(img, 1 / 255.0, (416, 416), swapRB=True, crop=False)
@@ -81,7 +82,11 @@ def detect_people(img: np.ndarray, net: cv2.dnn_Net,
 
         # We only care if confidence is above a threshold.
         confidence = scores[max_class]
-        if confidence < 0.3:
+        if confidence < 0.5:
+            continue
+
+        # We only care if the bounding box is a reasonable size.
+        if (bounding_box[2:] > max_detection_size).any():
             continue
 
         filtered_detections += [np.concatenate([bounding_box, [confidence]])]
@@ -105,7 +110,7 @@ def detect_people(img: np.ndarray, net: cv2.dnn_Net,
 
     # Apply non-maxima suppression to remove overlapping boxes with low confidences.
     indexes = cv2.dnn.NMSBoxes(list(bounding_boxes), list(confidences),
-                               score_threshold=0.5, nms_threshold=0.5)
+                               score_threshold=0.3, nms_threshold=0.3)
 
     return bounding_boxes[indexes].reshape(-1, 4), confidences[indexes].reshape(-1, 1)
 

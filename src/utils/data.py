@@ -18,10 +18,11 @@ def get_oxford_town_center_images() -> ImageSeq:
 
 
 def get_pets_2009_images(subset: Literal[0, 1, 2, 3],
-                         difficulty_level: Literal[1, 2, 3]) -> ImageSeq:
-    for i in range(200):
+                         difficulty_level: Literal[1, 2, 3],
+                         view: Literal[1, 2, 3, 4]) -> ImageSeq:
+    for i in range(436):
         path = f'{ROOT}/pets_2009/' \
-               f'S{subset}/L{difficulty_level}/Time_14-55/View_001/frame_{i:04}.jpg'
+               f'S{subset}/L{difficulty_level}/Time_14-55/View_{view:03}/frame_{i:04}.jpg'
         yield cv2.imread(path)
 
 
@@ -35,6 +36,7 @@ VIRAT_V2_GROUND_000001 = '000001'
 VIRAT_V2_GROUND_000101 = '000101'
 VIRAT_V2_GROUND_000201_00_000018_000380 = '000201_00_000018_000380'
 VIRAT_V2_GROUND_010000_00_000000_000165 = '010000_00_000000_000165'
+VIRAT_V2_GROUND_010208_10_000904_000991 = '010208_10_000904_000991'
 
 
 def get_video_images(path: str) -> ImageSeq:

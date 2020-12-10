@@ -23,19 +23,27 @@ app = flask.Flask(__name__, template_folder='web', static_folder='web')
 datasets = {
     'grand_central': 'Grand Central',
     'oxford_town_center': 'Oxford Town Center',
-    'pets_2009_s2_l2': 'PETS 2009 Subset 2 Level 2',
+    'pets_2009_s2_l2_v1': 'PETS 2009 Subset 2 Level 2 View 1',
+    'virat_v2_ground_000101': 'VIRAT Version 2 Ground 000101',
+    'virat_v2_ground_010208_10_000904_000991': 'VIRAT Version 2 Ground 010208 10 000904 000991',
 }
 
 dataset_images_providers = {
     'grand_central': lambda: data.get_grand_central_images(),
     'oxford_town_center': lambda: data.get_oxford_town_center_images(),
-    'pets_2009_s2_l2': lambda: data.get_pets_2009_images(subset=2, difficulty_level=2),
+    'pets_2009_s2_l2_v1': lambda: data.get_pets_2009_images(subset=2, difficulty_level=2, view=1),
+    'virat_v2_ground_000101': lambda: data.get_virat_v2_ground_images(data.VIRAT_V2_GROUND_000101),
+    'virat_v2_ground_010208_10_000904_000991': lambda: data.get_virat_v2_ground_images(
+        data.VIRAT_V2_GROUND_010208_10_000904_000991),
 }
 
 dataset_preparation_data = {
     'grand_central': 'rectangle=50,429,171,99,552,96,717,434&unit_dist=38,39',
-    'oxford_town_center': '',
-    'pets_2009_s2_l2': '',
+    'oxford_town_center': 'rectangle=0,664,1045,133,1888,243,1474,1065&unit_dist=300,150',
+    'pets_2009_s2_l2_v1': 'rectangle=10,286,237,103,767,129,395,379&unit_dist=71,103',
+    'virat_v2_ground_000101': 'rectangle=67,488,418,378,1161,665,761,933&unit_dist=545,358',
+    'virat_v2_ground_010208_10_000904_000991':
+        'rectangle=45,313,434,302,1037,506,758,587&unit_dist=270,199',
 }
 
 
