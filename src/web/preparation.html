@@ -10,15 +10,11 @@
     <h1>Physical Distancing Detector</h1>
 </div>
 <div class="container">
-    <h2>Datasets</h2>
-    <div class="caption">Select a dataset to analyze.</div>
-    <div class="dataset-list">
-        {% for id, name in datasets.items() %}
-        <div class="dataset-item">
-            <a href="preparation?dataset={{id}}">{{name}}</a>
-            (<a href="detection?dataset={{id}}&{{prep_data[id]}}">pre-prepared</a>)
-        </div>
-        {% endfor %}
+    <h2>Dataset Preparation</h2>
+    <div class="caption">
+        Please use the OpenCV user interface to select reference points for calibration of
+        the top-down perspective for the {{dataset}} video.
+        <a href="detection?dataset={{dataset_id}}">Done!</a>
     </div>
 </div>
 <footer>

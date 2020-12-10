@@ -18,19 +18,30 @@ def main():
         cv2.waitKey(1)
 
 
-def process(images_provider: data.ImageSeqProvider) \
+def ask_for_preparation_data(images_provider: data.ImageSeqProvider) \
+        -> Tuple[np.ndarray, np.ndarray]:
+    images = images_provider()
+    img = next(images)
+
+    rect = ask_for_rectangle(img)
+    homography, ground_size = compute_homography(img, rect, np.ones(2, ))
+    img_ground = apply_ground_plane_transform(img, homography, ground_size)
+    unit_dist = ask_for_unit_distance(img_ground)
+
+    assert rect.shape == (4, 2) and unit_dist.shape == (2,)
+    return rect, unit_dist
+
+
+def process(images_provider: data.ImageSeqProvider,
+            rect: np.ndarray, unit_dist: np.ndarray) \
         -> Generator[Tuple[np.ndarray, np.ndarray], None, None]:
     images = images_provider()
     img = next(images)
 
     # Ground plane transformation.
     print('Performing ground plane transformation...')
-    rect = ask_for_rectangle(img)
-    homography, ground_size = compute_homography(img, rect, np.ones(2, ))
-    img_ground = apply_ground_plane_transform(img, homography, ground_size)
-    unit_dist = ask_for_unit_distance(img_ground)
     homography, ground_size = compute_homography(img, rect, unit_dist)
-    img_ground = get_ground_plane_img(images_provider(), homography, ground_size)
+    img_ground = get_ground_plane_img(images_provider(), None, homography, ground_size)
     print('Done!')
 
     # Pedestrian detection.
@@ -55,6 +66,7 @@ def process(images_provider: data.ImageSeqProvider) \
         non_zero_dist = np.ma.masked_array(distances, mask=distances == 0)
         smallest_dist_per_point = np.min(non_zero_dist, axis=1).T.reshape(-1, 1)
 
+        print('Bounding boxes...')
         for i, (x, y, w, h) in enumerate(bounding_boxes):
             dist = smallest_dist_per_point[i]
             color = clr.red if dist <= 1 else clr.green
@@ -62,6 +74,7 @@ def process(images_provider: data.ImageSeqProvider) \
         for x, y in points:
             cv2.circle(img, (x, y), 5, clr.blue, thickness=3)
 
+        print('Ground...')
         img_ground_copy = img_ground.copy()
         for x, y in points_ground:
             cv2.circle(img_ground_copy, (x, y), 5, clr.blue, thickness=2)
@@ -75,6 +88,7 @@ def process(images_provider: data.ImageSeqProvider) \
             cv2.putText(img_ground_copy, f'{distances[i, j]:.2f}', (h_x, h_y),
                         cv2.FONT_HERSHEY_PLAIN, fontScale=1.2, color=clr.green)
 
+        print('Yielding...')
         yield img, img_ground_copy
 
 

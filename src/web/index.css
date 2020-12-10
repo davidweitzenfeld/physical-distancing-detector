@@ -30,7 +30,17 @@ h1 {
 
 h2 {
     color: #024267;
+    font-size: 20pt;
+}
+
+h3 {
+    color: #024267;
     font-size: 14pt;
+}
+
+.caption {
+    color: #505050;
+    margin-bottom: 12px;
 }
 
 footer {
@@ -56,9 +66,14 @@ footer > .right {
 
 .container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     padding: 24px;
     flex-grow: 1;
+}
+
+.feeds-container {
+    display: flex;
+    flex-direction: row;
 }
 
 .feed-item {

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='index.css') }}">
+</head>
+<body>
+<div class="header">
+    <h1>Physical Distancing Detector</h1>
+</div>
+<div class="container">
+    <h2>Running Physical Distancing Detection</h2>
+    <div class="caption">Detecting physical distancing in the {{dataset}}. <a href="stop">Stop</a>.</div>
+    <div class="feeds-container">
+        <div class="feed-item">
+            <h3>Original Video</h3>
+            <div class="feed-container">
+                <img class="feed" src="{{ url_for('video_feed') }}">
+            </div>
+        </div>
+        <div class="feed-item">
+            <h3>Top-Down Perspective</h3>
+            <div class="feed-container">
+                <img class="feed" src="{{ url_for('ground_feed') }}">
+            </div>
+        </div>
+    </div>
+</div>
+<footer>
+    <div class="left">
+        Created for the final project of University of Toronto's
+        CSC420 <i>Introduction to Image Understanding</i> course of Fall 2020.
+    </div>
+    <div class="right">
+        By David Vajcenfeld.
+    </div>
+</footer>
+</body>
+</html>
