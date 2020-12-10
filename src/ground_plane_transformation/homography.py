@@ -1,9 +1,11 @@
-from typing import Tuple
+from math import floor
+from typing import Tuple, Union
 
 import cv2
 import numpy as np
+import itertools
 
-from src.utils import data
+from src.utils import clr, data
 
 
 def test():
@@ -31,9 +33,17 @@ def ask_for_rectangle(img: np.ndarray) -> np.ndarray:
     def click_listener(event, x, y, flags, param):
         nonlocal points
         if event == cv2.EVENT_LBUTTONUP and len(points) < 4:
+
             points += [(x, y)]
             cv2.circle(img, (x, y), 10, (0, 255, 0), thickness=2)
             cv2.imshow('Select', img)
+            if len(points) == 4:
+                points = np.array(points)
+                points = order_rectangle(points)
+                for i in range(len(points)):
+                    cv2.line(img, tuple(points[i]), tuple(points[(i + 1) % len(points)]),
+                             clr.blue, thickness=2)
+                cv2.imshow('Select', img)
 
     cv2.namedWindow('Select')
     cv2.setMouseCallback('Select', click_listener)
@@ -48,14 +58,6 @@ def ask_for_rectangle(img: np.ndarray) -> np.ndarray:
             done = True
 
     cv2.destroyWindow('Select')
-
-    points = np.array(points)
-
-    top_most, bottom_most = np.argmin(points[:, 1]), np.argmax(points[:, 1])
-    left_most, right_most = np.argmin(points[:, 0]), np.argmax(points[:, 0])
-
-    points = np.vstack([points[bottom_most, :], points[left_most, :],
-                        points[top_most, :], points[right_most, :]])
 
     return points
 
@@ -101,6 +103,27 @@ def ask_for_unit_distance(img: np.ndarray) -> np.ndarray:
     return np.array([x_unit_dist, y_unit_dist])
 
 
+def order_rectangle(rectangle: np.ndarray) -> np.ndarray:
+    assert rectangle.shape == (4, 2)
+    barycenter = np.mean(rectangle, axis=0)
+    barycentric = rectangle - barycenter
+    sorted_idx = np.argsort(angles(barycentric))
+    return rectangle[sorted_idx, :]
+
+
+def angles(rectangle: np.ndarray) -> np.ndarray:
+    assert rectangle.shape == (4, 2)
+    barycenter = np.mean(rectangle, axis=0)
+    barycentric = rectangle - barycenter
+    return np.array([angle(b) for b in barycentric])
+
+
+def angle(v: np.ndarray) -> float:
+    a = np.arctan2(*v[::-1])
+    a = np.degrees(a)
+    return int((a - 90) % 360)
+
+
 def compute_homography(img: np.ndarray, rectangle: np.ndarray,
                        unit_dist: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
     """
@@ -110,11 +133,21 @@ def compute_homography(img: np.ndarray, rectangle: np.ndarray,
     :return: A tuple of (ground plane transform homography, size of the output image).
     """
     assert unit_dist.shape == (2,)
-
     h, w = img.shape[:2]
-    out_w, out_h = int(w), int(h * (float(unit_dist[0]) / float(unit_dist[1])))
-    homography, mask = cv2.findHomography(rectangle, get_corresponding_points(out_w, out_h))
-    return homography, (out_w, out_h)
+
+    left_offset = np.min(rectangle[:, 0])
+    right_offset = w - np.max(rectangle[:, 0])
+    top_offset = np.min(rectangle[:, 1])
+    bottom_offset = h - np.max(rectangle[:, 1])
+    translation = np.array([[1, 0, left_offset], [0, 1, top_offset], [0, 0, 1]])
+
+    homog_w, homog_h = int(w), int(h * (float(unit_dist[0]) / float(unit_dist[1])))
+
+    corners = get_corners(homog_w, homog_h)
+    homography, mask = cv2.findHomography(rectangle, corners)
+
+    out_w, out_h = homog_w + left_offset + right_offset, homog_h + top_offset + bottom_offset
+    return translation @ homography, (out_w, out_h)
 
 
 def apply_ground_plane_transform(img: np.ndarray, homography: np.ndarray,
@@ -128,18 +161,25 @@ def apply_ground_plane_transform(img: np.ndarray, homography: np.ndarray,
     return img_warped
 
 
-def get_corresponding_points(w: int, h: int) -> np.ndarray:
+def get_corners(w: int, h: int) -> np.ndarray:
     return np.array([
-        [w, h],  # bottom left
-        [0, h],  # top left
-        [0, 0],  # top right
-        [w, 0],  # bottom right
+        [0, h],  # bottom left
+        [0, 0],  # top left
+        [w, 0],  # top right
+        [w, h],  # bottom right
     ])
 
 
-def get_ground_plane_img(images: data.ImageSeq, homography: np.ndarray,
-                         out_size: Tuple[int, int]) -> np.ndarray:
-    matrix = np.stack([cv2.warpPerspective(img, homography, out_size) for img in images])
+def get_ground_plane_img(images: data.ImageSeq, frame_count: Union[int, None],
+                         homography: np.ndarray,
+                         out_size: Tuple[int, int], sample_size: int = 500) -> np.ndarray:
+    if frame_count is not None:
+        sample_size = min(frame_count, sample_size)
+        step = int(floor(frame_count / sample_size))
+    else:
+        step = 1
+    matrix = np.stack([cv2.warpPerspective(img, homography, out_size)
+                       for img in itertools.islice(images, 0, sample_size, step)])
     mean = np.mean(matrix, axis=0)
     mean = cv2.convertScaleAbs(mean)
     return mean
