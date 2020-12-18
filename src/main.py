@@ -66,6 +66,9 @@ def process(images_provider: data.ImageSeqProvider,
         non_zero_dist = np.ma.masked_array(distances, mask=distances == 0)
         smallest_dist_per_point = np.min(non_zero_dist, axis=1).T.reshape(-1, 1)
 
+        circle_r = int(img_ground.shape[0] / 100)
+        circle_t = int(floor(circle_r / 2))
+
         for i, (x, y, w, h) in enumerate(bounding_boxes):
             dist = smallest_dist_per_point[i]
             color = clr.red if dist <= 1 else clr.orange if dist <= 1.6 else clr.green
@@ -75,7 +78,7 @@ def process(images_provider: data.ImageSeqProvider,
         for i, (x, y) in enumerate(points_ground):
             dist = smallest_dist_per_point[i]
             color = clr.red if dist <= 1 else clr.orange if dist <= 1.6 else clr.green
-            cv2.circle(img_ground_copy, (x, y), 5, color, thickness=2)
+            cv2.circle(img_ground_copy, (x, y), circle_r, color, thickness=circle_t)
         for i, j in np.ndindex(distances.shape):
             if i == j or distances[i, j] > 1:
                 continue

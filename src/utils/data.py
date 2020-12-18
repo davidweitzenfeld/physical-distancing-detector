@@ -23,7 +23,9 @@ def get_pets_2009_images(subset: Literal[0, 1, 2, 3],
     for i in range(436):
         path = f'{ROOT}/pets_2009/' \
                f'S{subset}/L{difficulty_level}/Time_14-55/View_{view:03}/frame_{i:04}.jpg'
-        yield cv2.imread(path)
+        img = cv2.imread(path)
+        if img is not None:
+            yield img
 
 
 def get_virat_v2_ground_images(video_id: str) -> ImageSeq:
@@ -41,13 +43,17 @@ VIRAT_V2_GROUND_010208_10_000904_000991 = '010208_10_000904_000991'
 
 def get_video_images(path: str) -> ImageSeq:
     video = cv2.VideoCapture(path)
-    while video.isOpened():
+    frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    for i in range(frame_count):
         _, img = video.read()
-        yield img
+        if img is not None:
+            yield img
 
 
 def get_image_as_seq(path: str) -> ImageSeq:
-    yield cv2.imread(path)
+    img = cv2.imread(path)
+    if img is not None:
+        yield img
 
 
 def provider(fn: ImageSeqProvider) -> ImageSeqProvider:

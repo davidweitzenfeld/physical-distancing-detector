@@ -1,6 +1,6 @@
 # Implementation of website was initially based on the following guide.
 #   https://www.pyimagesearch.com/2019/09/02/opencv-stream-video-to-web-browser-html-page/
-from typing import Optional, List
+from typing import Optional
 
 import cv2
 import flask
